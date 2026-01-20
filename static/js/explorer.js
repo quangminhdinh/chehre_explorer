@@ -19,11 +19,29 @@ async function loadEmojis() {
 }
 
 
-const participants = [
-  { id: 'P001', name: 'Participant 001' },
-  { id: 'P002', name: 'Participant 002' },
-  { id: 'P003', name: 'Participant 003' },
-];
+// const participants = [
+//   { id: 'P001', name: 'Participant 001' },
+//   { id: 'P002', name: 'Participant 002' },
+//   { id: 'P003', name: 'Participant 003' },
+// ];
+
+let participants = [];
+
+async function loadParticipants() {
+  const res = await fetch(`${server_uri}/all-participants`);
+  const paths = await res.json();
+
+  participants = paths.map(path => {
+    const file = path.split('/').pop();        // subj042.png
+    const id = file.replace('.png', '');       // subj042
+    return {
+      id,
+      url: `${server_uri}${path}`
+    };
+  });
+
+  initParticipants();
+}
 
 let selectedEmoji = null;
 let selectedParticipant = null;
@@ -52,14 +70,26 @@ function initEmojis() {
 // Initialize participant grid
 function initParticipants() {
   const grid = document.getElementById('participantGrid');
+  grid.innerHTML = '';
+
   participants.forEach(p => {
     const div = document.createElement('div');
     div.className = 'participant-item';
-    div.innerHTML = `
-      <div class="participant-img"></div>
-      <div class="participant-id">${p.id}</div>
-    `;
+
+    const img = document.createElement('img');
+    img.src = p.url;
+    img.alt = p.id;
+    img.className = 'participant-img';
+
+    const label = document.createElement('div');
+    label.className = 'participant-id';
+    label.textContent = p.id;
+
+    div.appendChild(img);
+    div.appendChild(label);
+
     div.onclick = () => selectParticipant(p.id, div);
+
     grid.appendChild(div);
   });
 }
@@ -135,5 +165,5 @@ function updateResults() {
 // Initialize on load
 document.addEventListener('DOMContentLoaded', () => {
   loadEmojis();
-  initParticipants();
+  loadParticipants();
 });
