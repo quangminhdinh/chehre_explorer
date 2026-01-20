@@ -18,13 +18,6 @@ async function loadEmojis() {
   initEmojis();
 }
 
-
-// const participants = [
-//   { id: 'P001', name: 'Participant 001' },
-//   { id: 'P002', name: 'Participant 002' },
-//   { id: 'P003', name: 'Participant 003' },
-// ];
-
 let participants = [];
 
 async function loadParticipants() {
@@ -111,55 +104,87 @@ function selectParticipant(id, element) {
 }
 
 // Update video results
-function updateResults() {
+async function updateResults() {
   const grid = document.getElementById('videoGrid');
   grid.innerHTML = '';
   
   if (!selectedEmoji || !selectedParticipant) {
+    grid.innerHTML = `
+      <div class="empty-state">
+        Select an emoji and participant to view results
+      </div>
+    `;
     return;
   }
+
+  const url = new URL(
+    `${server_uri}/get-videos-with-emotion-rankings`
+  );
+
+  url.searchParams.set('emoji_code', selectedEmoji);
+  url.searchParams.set('participant_code', selectedParticipant);
   
-  // Placeholder: Generate 3 sample videos
-  for (let i = 1; i <= 3; i++) {
+  let data;
+  try {
+    const res = await fetch(url);
+    data = await res.json();
+  } catch (err) {
+    grid.innerHTML = `<div class="empty-state">Failed to load videos</div>`;
+    return;
+  }
+
+  const entries = Object.entries(data);
+
+  if (entries.length === 0) {
+    grid.innerHTML = `<div class="empty-state">No matching videos</div>`;
+    return;
+  }
+
+  entries.forEach(([videoPath, emotionCounts]) => {
     const card = document.createElement('div');
     card.className = 'video-card';
-    
-    // Sample emotion data
-    const emotions = {
-      'Angry': Math.floor(Math.random() * 4),
-      'Annoyed': Math.floor(Math.random() * 4),
-      'Frustrated': Math.floor(Math.random() * 4),
-      'Furious': Math.floor(Math.random() * 4)
-    };
-    
-    const maxValue = 3;
-    
+
+    const videoUrl = `${server_uri}${videoPath}`;
+    const videoName = videoPath.split('/').pop();
+
+    const maxValue = Math.max(...Object.values(emotionCounts));
+
+    const sortedEmotions = Object.entries(emotionCounts)
+      .sort((a, b) => b[1] - a[1]);
+
+    const rank1 = sortedEmotions[0]?.[0] ?? 'N/A';
+    const rank2 = sortedEmotions[1]?.[0] ?? 'N/A';
+
     card.innerHTML = `
       <div class="video-placeholder">
-        <video autoplay loop muted style="width: 100%; height: 100%; object-fit: cover;">
-          <source src="placeholder.mp4" type="video/mp4">
-          Video ${i}
+        <video controls preload="metadata">
+          <source src="${videoUrl}" type="video/mp4">
         </video>
       </div>
+
       <div class="video-info">
-        <strong>Video:</strong> ${selectedParticipant}_${selectedEmoji}_${i}.mp4<br>
-        <strong>Rank 1:</strong> ${Object.keys(emotions)[0]} | <strong>Rank 2:</strong> ${Object.keys(emotions)[1]}
+        <strong>Video:</strong> ${videoName}<br>
+        <strong>Rank 1:</strong> ${rank1} |
+        <strong>Rank 2:</strong> ${rank2}
       </div>
+
       <div class="emotion-stats">
-        ${Object.entries(emotions).map(([emotion, value]) => `
+        ${sortedEmotions.map(([emotion, value]) => `
           <div class="emotion-row">
-            <div class="emotion-label">${emotion}:</div>
+            <div class="emotion-label">${emotion}</div>
             <div class="emotion-bar">
-              <div class="emotion-fill" style="width: ${(value / maxValue) * 100}%"></div>
+              <div class="emotion-fill"
+                   style="width: ${(value / maxValue) * 100}%">
+              </div>
             </div>
             <div class="emotion-value">${value}</div>
           </div>
         `).join('')}
       </div>
     `;
-    
+
     grid.appendChild(card);
-  }
+  });
 }
 
 // Initialize on load
