@@ -28,6 +28,9 @@
     grid-template-columns: repeat(4, 1fr);
     gap: 8px;
     margin-bottom: 30px;
+    max-height: 300px;     /* adjust to taste */
+    overflow-y: auto;
+    padding-right: 6px;   /* prevents scrollbar overlap */
 }
 
 .emoji-item {
@@ -162,4 +165,10 @@
     color: #999;
     font-size: 1.1em;
     text-align: center;
+}
+
+.emoji-img {
+    width: 48px;
+    height: 48px;
+    object-fit: contain;
 }
