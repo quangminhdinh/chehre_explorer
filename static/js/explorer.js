@@ -1,4 +1,4 @@
-let server_uri = "https://chehre-server.onrender.com";
+let server_uri = "https://chehre-server.up.railway.app/";
 
 let emojis = [];
 
