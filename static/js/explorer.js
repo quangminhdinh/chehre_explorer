@@ -147,7 +147,7 @@ async function updateResults() {
     const videoUrl = `${server_uri}${videoPath}`;
     const videoName = videoPath.split('/').pop();
 
-    const maxValue = Math.max(...Object.values(emotionCounts));
+    const maxValue = Object.values(emotionCounts).reduce((sum, v) => sum + v, 0);
 
     const sortedEmotions = Object.entries(emotionCounts)
       .sort((a, b) => b[1] - a[1]);
