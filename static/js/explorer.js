@@ -144,7 +144,8 @@ async function updateResults() {
     const card = document.createElement('div');
     card.className = 'video-card';
 
-    const videoUrl = `${server_uri}${videoPath}`;
+    // const videoUrl = `${server_uri}${videoPath}`;
+    const videoUrl = videoPath;
     const videoName = videoPath.split('/').pop();
 
     const maxValue = Object.values(emotionCounts).reduce((sum, v) => sum + v, 0);
